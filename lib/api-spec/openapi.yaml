@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ResumeAI API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: ai
+    description: AI-powered resume enhancement
 paths:
   /healthz:
     get:
@@ -24,6 +26,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /ai/enhance:
+    post:
+      operationId: enhanceText
+      tags: [ai]
+      summary: Enhance resume text with AI
+      description: Use AI to write or improve resume text (summary, bullet points, etc.)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnhanceTextInput"
+      responses:
+        "200":
+          description: Enhanced text result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhanceTextResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/suggest-skills:
+    post:
+      operationId: suggestSkills
+      tags: [ai]
+      summary: Suggest skills based on role/experience
+      description: Use AI to suggest relevant skills for a given role or job title
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuggestSkillsInput"
+      responses:
+        "200":
+          description: Suggested skills
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestSkillsResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +89,62 @@ components:
       required:
         - status
 
+    EnhanceTextInput:
+      type: object
+      required:
+        - type
+        - context
+      properties:
+        type:
+          type: string
+          enum: [summary, experience, project, cover]
+          description: The type of text to enhance
+        context:
+          type: string
+          description: Existing text or role context to base the enhancement on
+        jobTitle:
+          type: ["string", "null"]
+          description: The user's job title or target role
+        existingText:
+          type: ["string", "null"]
+          description: Existing text to improve (if any)
+
+    EnhanceTextResult:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: The AI-generated or enhanced text
+
+    SuggestSkillsInput:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          description: Job title or role to suggest skills for
+        existingSkills:
+          type: ["string", "null"]
+          description: Comma-separated existing skills to avoid duplicating
+
+    SuggestSkillsResult:
+      type: object
+      required:
+        - skills
+      properties:
+        skills:
+          type: array
+          items:
+            type: string
+          description: List of suggested skills
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
